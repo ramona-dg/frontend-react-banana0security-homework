@@ -11,13 +11,16 @@ function AuthContextProvider({children}) {
     });
     const history = useHistory();
 
-    function logIn() {
+    //jwt komt uit SignIn onder result.data.accessToken
+    function login(jwt) {
         console.log("De gebruiker is ingelogd");
+        // token wordt opgeslagen in localStorage>app in webbrowser
+        localStorage.setItem('token', jwt);
         setAuth(true);
         history.push('/profile');
     }
 
-    function logOut() {
+    function logout() {
         console.log("De gebruiker is uitgelogd");
         setAuth(false);
         history.push('/');
@@ -25,8 +28,8 @@ function AuthContextProvider({children}) {
 
     const contextData = {
         isAuth: auth,
-        logIn: logIn,
-        logOut: logOut,
+        login: login,
+        logout: logout,
         user: null
     }
 

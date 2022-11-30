@@ -1,14 +1,28 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {AuthContext} from "../context/AuthContext";
+import axios from "axios";
 
 function SignIn( {children }) {
-    const {logIn} = useContext(AuthContext)
+    const { login } = useContext(AuthContext);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-    // e/ e.prefentDefault zorgt ervoor dat pagina niet refresht
-    function handleSubmit(e) {
-        e.preventDefault();
-        logIn();
+
+    // e.preventDefault zorgt ervoor dat pagina niet refresht
+    async function handleSubmit(e){
+        e.preventDefault()
+        try{
+            const result = await axios.post('http://localhost:3000/login',{
+                email: email,
+                password: password
+                })
+            console.log(result.data.accessToken)
+            login(result.data.accessToken)
+
+        }catch (e){
+            console.error(e)
+        }
     }
 
     return (
@@ -18,7 +32,27 @@ function SignIn( {children }) {
                 molestias qui quo unde?</p>
 
             <form onSubmit={handleSubmit}>
-                <p>*invoervelden*</p>
+                <label htmlFor="username-field">
+                    E-mail:
+                    <input
+                        name="email"
+                        type="text"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </label>
+
+                <label htmlFor="password-field">
+                    Wachtwoord:
+                    <input
+                        name="password"
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </label>
                 <button type="submit"
                 >Inloggen
                 </button>

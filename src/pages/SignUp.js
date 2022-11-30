@@ -14,6 +14,7 @@ function SignUp() {
     const history = useHistory();
 
     async function handleSubmit(e) {
+        console.log(email, password, username);
         e.preventDefault();
         toggleError(false);
         toggleLoading(true);
