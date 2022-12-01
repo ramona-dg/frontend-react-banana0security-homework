@@ -1,4 +1,4 @@
-import React, {createContext, useState} from "react";
+import React, {createContext, useEffect, useState} from "react";
 import {useHistory} from "react-router-dom";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
@@ -6,13 +6,55 @@ import axios from "axios";
 
 export const AuthContext = createContext({});
 
-
 function AuthContextProvider({children}) {
     const [auth, setAuth] = useState({
         isAuth: false,
         user: null,
+        status: 'pending',
     });
     const history = useHistory();
+
+    useEffect(() => {
+        // Check of er een JWT in de Local Storage aanwezig is
+        // Als dat zo is, decodeer je de token. We namelijk hebben de id van de gebruiker nodig!
+        const token = localStorage.getItem(token);
+        if (token) {
+            async function getUserData() {
+                const decodedToken = jwtDecode(token);
+                try {
+                    const response = await axios.get(`http://localhost:3000/600/users/${decodedToken.sub}`, {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        }
+                    });
+                    setAuth({
+                        isAuth: true,
+                        user: {
+                            username: data.data.username,
+                            email: data.data.email,
+                            id: data.data.id,
+                        },
+                        status: 'pending',
+                    })
+                } catch (e) {
+                    setAuth({
+                        ...auth,
+                        status: 'error',
+                    });
+                    localStorage.clear();
+                    console.error(e);
+                }
+            }
+            getUserData();
+        }else{
+            setAuth({
+                ...auth,
+                status: 'done',
+            });
+        }
+    }, [])
+
 
     //jwt komt uit SignIn onder result.data.accessToken
     function login(jwt) {
@@ -34,20 +76,21 @@ function AuthContextProvider({children}) {
         localStorage.clear();
         setAuth({
             isAuth: false,
-            user: null,
+            user: null
         });
-console.log(auth);
+        console.log(auth);
         history.push('/');
     }
 
-    async function getData(id, token){
-        try{
-            const data = await axios.get(`http://localhost:3000/600/users/${id}`,{
-                headers:{
+    async function getData(id, token) {
+        try {
+            const data = await axios.get(`http://localhost:3000/600/users/${id}`, {
+                headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                }})
-          setAuth({
+                }
+            })
+            setAuth({
                 isAuth: true,
                 user: {
                     username: data.data.username,
@@ -57,7 +100,7 @@ console.log(auth);
             });
             // console.log(isAuth);
             history.push('/profile');
-        }catch (e) {
+        } catch (e) {
             console.error(e);
         }
     }
