@@ -5,9 +5,7 @@ import {AuthContext} from "../context/AuthContext";
 
 function NavBar() {
     const history = useHistory();
-    const {isAuth, logout, login, user} = useContext(AuthContext);
-
-    console.log(isAuth);
+    const {isAuth, logout } = useContext(AuthContext);
 
 
     return (
@@ -31,14 +29,14 @@ function NavBar() {
                 <div>
                     <button
                         type="button"
-                        onClick={ login }
+                        onClick={() => history.push('/signin')}
                     >
                         Log in
                     </button>
 
                     <button
                         type="button"
-                        onClick={ login }
+                        onClick={() => history.push('/signup')}
                     >
                         Registreren
                     </button>

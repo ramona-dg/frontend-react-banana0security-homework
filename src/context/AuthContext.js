@@ -31,7 +31,12 @@ function AuthContextProvider({children}) {
 
     function logout() {
         console.log("De gebruiker is uitgelogd");
-        setAuth(false);
+        localStorage.clear();
+        setAuth({
+            isAuth: false,
+            user: null,
+        });
+console.log(auth);
         history.push('/');
     }
 
@@ -42,7 +47,16 @@ function AuthContextProvider({children}) {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 }})
-            console.log(data);
+          setAuth({
+                isAuth: true,
+                user: {
+                    username: data.data.username,
+                    email: data.data.email,
+                    id: data.data.id,
+                },
+            });
+            // console.log(isAuth);
+            history.push('/profile');
         }catch (e) {
             console.error(e);
         }
@@ -50,10 +64,11 @@ function AuthContextProvider({children}) {
 
 // dit is de data van context die gebruikt kan worden op andere pagina's
     const contextData = {
-        isAuth: auth,
+        isAuth: auth.isAuth,
+        user: auth.user,
         login: login,
-        logout: logout,
-        user: null
+        logout: logout
+
     }
 
     return (
