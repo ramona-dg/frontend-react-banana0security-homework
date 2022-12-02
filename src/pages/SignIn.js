@@ -19,7 +19,6 @@ function SignIn( {children }) {
                 })
             console.log(result.data.accessToken)
             login(result.data.accessToken)
-
         }catch (e){
             console.error(e)
         }

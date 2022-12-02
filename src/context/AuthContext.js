@@ -14,65 +14,31 @@ function AuthContextProvider({children}) {
     });
     const history = useHistory();
 
+    // MOUNTING EFFECT, om gebruiker " ingelogd te laten" na refreh
     useEffect(() => {
-
-        const token = localStorage.getItem('token');
-        if (token) {
-            async function getUserData() {
-                const decodedToken = jwtDecode(token);
-                try {
-                    const response = await axios.get(`http://localhost:3000/600/users/${decodedToken.sub}`, {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        }
-                    });
-                    setAuth({
-                        isAuth: true,
-                        user: {
-                            username: response.data.username,
-                            email: response.data.email,
-                            id: response.data.id,
-                        },
-                        status: 'done',
-                    })
-                } catch (e) {
-                    setAuth({
-                        isAuth: false,
-                        user: null,
-                        status: 'error',
-                    });
-                    localStorage.clear();
-                    console.error(e);
-                }
-            }
-            getUserData();
-        }else{
+        const token = localStorage.getItem('token'); // token uit localStorage halen
+        if (token) { // als token aanwezig is doe het volgende:
+            const decoded = jwtDecode(token);
+            getData(decoded.sub, token);  //getData functie aanroepen om id (onder decoded.sub) en token mee te geven voor authorization
+        } else { // anders zet de state op de volgende waardes
             setAuth({
-                ...auth,
+                isAuth: false,
+                user: null,
                 status: 'done',
             });
         }
-    }, [])
+    }, []);
 
 
-    //jwt komt uit SignIn onder result.data.accessToken
     function login(jwt) {
-        console.log("De gebruiker is ingelogd");
-        // token wordt opgeslagen in localStorage>app in webbrowser
-        localStorage.setItem('token', jwt);
-        const decode = jwtDecode(jwt)
-        // decode om overige gegevens uit de token te halen, BEHALVE password
-        console.log(decode);
-        setAuth(true);
-        history.push('/profile');
-        //hieronder vul je de gegevens voor de getData functie beneden in de pagina
-        getData(decode.sub, jwt);
+        console.log("De gebruiker is ingelogd"); // console laten weten ingelogd.
+        localStorage.setItem('token', jwt);     // token wordt opgeslagen in localStorage>app in webbrowser
+        const decode = jwtDecode(jwt) // de jwt (token uit komt uit SignIn onder result.data.accessToken)
+        getData(decode.sub, jwt, '/profile');   //vul je de gegevens voor de getData functie beneden in de pagina
     }
 
 
     function logout() {
-        console.log("De gebruiker is uitgelogd");
         localStorage.clear();
         setAuth({
             isAuth: false,
@@ -80,17 +46,20 @@ function AuthContextProvider({children}) {
             status: 'done'
         });
         console.log(auth);
+        console.log("De gebruiker is uitgelogd");
         history.push('/');
     }
 
-    async function getData(id, token) {
+// async functie op data op te halen voor login en useEffect om gegevens van de jwt token uit localStorage te halen
+    async function getData(id, token, redirectUrl) {
         try {
             const data = await axios.get(`http://localhost:3000/600/users/${id}`, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
-                }
-            })
+                },
+            });
+
             setAuth({
                 isAuth: true,
                 user: {
@@ -98,15 +67,23 @@ function AuthContextProvider({children}) {
                     email: data.data.email,
                     id: data.data.id,
                 },
+                status:'done',
             });
-            // console.log(isAuth);
-            history.push('/profile');
+
+            if (redirectUrl) {
+                history.push(redirectUrl);
+            }
         } catch (e) {
             console.error(e);
+            setAuth({
+                isAuth: false,
+                user: null,
+                status: 'error',
+            });
         }
     }
 
-// dit is de data van context die gebruikt kan worden op andere pagina's
+// dit is de data van context die gebruikt kan worden op andere pagina's met hieronder de key's en function/waarde
     const contextData = {
         isAuth: auth.isAuth,
         user: auth.user,
