@@ -15,9 +15,8 @@ function AuthContextProvider({children}) {
     const history = useHistory();
 
     useEffect(() => {
-        // Check of er een JWT in de Local Storage aanwezig is
-        // Als dat zo is, decodeer je de token. We namelijk hebben de id van de gebruiker nodig!
-        const token = localStorage.getItem(token);
+
+        const token = localStorage.getItem('token');
         if (token) {
             async function getUserData() {
                 const decodedToken = jwtDecode(token);
@@ -31,15 +30,16 @@ function AuthContextProvider({children}) {
                     setAuth({
                         isAuth: true,
                         user: {
-                            username: data.data.username,
-                            email: data.data.email,
-                            id: data.data.id,
+                            username: response.data.username,
+                            email: response.data.email,
+                            id: response.data.id,
                         },
-                        status: 'pending',
+                        status: 'done',
                     })
                 } catch (e) {
                     setAuth({
-                        ...auth,
+                        isAuth: false,
+                        user: null,
                         status: 'error',
                     });
                     localStorage.clear();
@@ -76,7 +76,8 @@ function AuthContextProvider({children}) {
         localStorage.clear();
         setAuth({
             isAuth: false,
-            user: null
+            user: null,
+            status: 'done'
         });
         console.log(auth);
         history.push('/');
@@ -113,10 +114,13 @@ function AuthContextProvider({children}) {
         logout: logout
 
     }
-
+// in de return status check doen vanwege renderen en controle van valid token in localStorage
     return (
         <AuthContext.Provider value={contextData}>
-            {children}
+            {/*{auth.status === 'done' ? children : <p>Loading...</p>}*/}
+            {auth.status === 'done' && children}
+            {auth.status === 'pending' && <p>Loading...</p>}
+            {auth.status === 'error' && <p>Error! Refresh de pagina!</p>}
         </AuthContext.Provider>
     )
 }
